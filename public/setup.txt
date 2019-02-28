@@ -1,0 +1,11 @@
+Subtypes
+  subject
+  name
+Subject
+  has_many sub_types
+  name
+
+rails g scaffold Subject name:string
+rails g scaffold Subtype name:string subject:references
+rails g scaffold Sighting subject:references subtype:references zipcode:integer notes:text number_sighted:integer
+rails g scaffold User email:string password_digest:string display_name:string api_key:string admin:integer
