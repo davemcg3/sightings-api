@@ -13,4 +13,6 @@ Rails.application.routes.draw do
   post '/sighting' => 'v1/sightings#create'
   get '/sighting/search' => 'v1/sightings#index'
   get '/sighting/:id' => 'v1/sightings#show'
+
+  root to: 'v1/sightings#index'
 end

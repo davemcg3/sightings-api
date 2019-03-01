@@ -85,7 +85,7 @@ module V1
 
       # Only allow a trusted parameter "white list" through.
       def sighting_params
-        return ActionController::Parameters.new.permit if params.except(:controller, :action).empty?
+        return ActionController::Parameters.new.permit if params.except(:controller, :action, :format).empty?
         params.require(:sighting).permit(:subject, :subtype, :zipcode, :notes, :number_sighted, :start_date, :end_date, :sort, :sort_order)
       end
 
