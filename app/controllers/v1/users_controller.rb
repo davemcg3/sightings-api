@@ -16,7 +16,7 @@ module V1
     # GET /users/1
     def show
       # set_user(current_user&.id)
-      render json: { display_name: @user[:display_name] } #@user
+      render json: { data: { attributes: { display_name: @user[:display_name] } } } #@user
     end
 
     # POST /users

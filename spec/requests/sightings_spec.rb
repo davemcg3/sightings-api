@@ -117,4 +117,144 @@ RSpec.describe "Sightings", type: :request do
       expect(parsed_response[:id]).to eq(sighting.id.to_s)
     end
   end
+
+
+  context 'when not searching' do
+    let!(:sighting) {
+      FactoryBot.create(:sighting)
+    }
+
+    let(:user) {
+      FactoryBot.create(:user)
+    }
+
+    let(:admin) {
+      FactoryBot.create(:user, admin: :admin)
+    }
+
+    def headers(with_user)
+      {'Authorization': "Bearer #{JwtService.encode({user_id: with_user.id})}"}.stringify_keys
+    end
+
+    context 'without a user' do
+      it 'can only list, show, and create anonymous sightings' do
+        # index
+        get '/v1/sightings'
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response.length).to eq(1)
+        expect(parsed_response.first["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response.first["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # show
+        get "/v1/sightings/#{sighting.id}"
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # create
+        zipcode = 12345
+        post "/v1/sightings", params: {sighting: {subject: Subtype.first.subject.name, subtype: Subtype.first.name, zipcode: zipcode}}
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to be_present
+        expect(parsed_response["attributes"]["zipcode"]).to eq(zipcode)
+        expect(parsed_response["relationships"]["user"]["data"]).to eq("anonymous")
+
+        # update
+        zipcode = 54321
+        patch "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+
+        # update
+        zipcode = 54321
+        put "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+
+        # destroy
+        delete "/v1/sightings/#{sighting.id}"
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+      end
+    end
+
+    context 'with a standard user' do
+      it 'can only list or show sightings' do
+        # index
+        get '/v1/sightings', params: nil, headers: headers(user)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response.length).to eq(1)
+        expect(parsed_response.first["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response.first["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # show
+        get "/v1/sightings/#{sighting.id}", params: nil, headers: headers(user)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # create
+        zipcode = 12345
+        post "/v1/sightings", params: {sighting: {subject: Subtype.first.subject.name, subtype: Subtype.first.name, zipcode: zipcode}}, headers: headers(user)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to be_present
+        expect(parsed_response["attributes"]["zipcode"]).to eq(zipcode)
+        expect(parsed_response["relationships"]["user"]["data"]).to eq(user.display_name)
+
+        # update
+        zipcode = 54321
+        patch "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}, headers: headers(user)
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+
+        # update
+        zipcode = 54321
+        put "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}, headers: headers(user)
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+
+        # destroy
+        delete "/v1/sightings/#{sighting.id}", params: nil, headers: headers(user)
+        expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
+      end
+    end
+
+    context 'with an admin user' do
+      it 'can list, show, create, update (patch), update (put), and destroy' do
+        # index
+        get '/v1/sightings', params: nil, headers: headers(admin)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response.length).to eq(1)
+        expect(parsed_response.first["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response.first["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # show
+        get "/v1/sightings/#{sighting.id}", params: nil, headers: headers(admin)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to eq(sighting.id.to_s)
+        expect(parsed_response["attributes"]["zipcode"]).to eq(sighting.zipcode)
+
+        # create
+        zipcode = 54321
+        post "/v1/sightings", params: {sighting: {subject: Subtype.first.subject.name, subtype: Subtype.first.name, zipcode: zipcode}}, headers: headers(admin)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to be_present
+        expect(parsed_response["attributes"]["zipcode"]).to eq(zipcode)
+        expect(parsed_response["relationships"]["user"]["data"]).to eq(admin.display_name)
+
+        # update
+        zipcode = 54321
+        patch "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}, headers: headers(admin)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to be_present
+        expect(parsed_response["attributes"]["zipcode"]).to eq(zipcode)
+
+        # update
+        zipcode = 54321
+        put "/v1/sightings/#{sighting.id}", params: {sighting: {zipcode: zipcode}}, headers: headers(admin)
+        parsed_response = JSON.parse(response.body)["data"]
+        expect(parsed_response["id"]).to be_present
+        expect(parsed_response["attributes"]["zipcode"]).to eq(zipcode)
+
+        # destroy
+        delete "/v1/sightings/#{sighting.id}", params: nil, headers: headers(admin)
+        expect(response.status).to eq(204) # no content
+      end
+    end
+  end
 end

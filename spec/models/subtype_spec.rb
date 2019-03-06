@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Subtype, type: :model do
   it { should validate_presence_of(:name) }
   it { should belong_to(:subject) }
-  it { should belong_to(:parent) }
+  it { should belong_to(:parent).optional }
   it { should have_many(:children) }
 
   context 'with a self-referential association' do

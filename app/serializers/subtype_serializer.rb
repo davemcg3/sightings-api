@@ -1,3 +1,9 @@
 class SubtypeSerializer < ActiveModel::Serializer
-  attributes :id, :name, :subject
+  # change subject to relationship
+  attributes :id, :name
+  belongs_to :subject
+
+  def subject
+    object.subject.name
+  end
 end

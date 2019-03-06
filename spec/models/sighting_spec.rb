@@ -3,7 +3,7 @@ require 'rails_helper'
 RSpec.describe Sighting, type: :model do
   it { should belong_to(:subject) }
   it { should belong_to(:subtype) }
-  it { should belong_to(:user) }
+  it { should belong_to(:user).optional }
   it { should validate_presence_of(:zipcode) }
 
   describe "#scopes" do

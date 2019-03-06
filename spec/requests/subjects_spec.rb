@@ -33,15 +33,18 @@ RSpec.describe "Subjects", type: :request do
       expect(parsed_response["attributes"]["name"]).to eq(subject.name)
 
       # create
-      post "/v1/subjects"
+      name = 'brown bear'
+      post "/v1/subjects", params: {subject: {name: name}}
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # update
-      patch "/v1/subjects/#{subject.id}"
+      name = 'grizzly bear'
+      patch "/v1/subjects/#{subject.id}", params: {subject: {name: name}}
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # update
-      put "/v1/subjects/#{subject.id}"
+      name = 'kodiak bear'
+      put "/v1/subjects/#{subject.id}", params: {subject: {name: name}}
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # destroy
@@ -66,15 +69,18 @@ RSpec.describe "Subjects", type: :request do
       expect(parsed_response["attributes"]["name"]).to eq(subject.name)
 
       # create
-      post "/v1/subjects", params: nil, headers: headers(user)
+      name = 'brown bear'
+      post "/v1/subjects", params: {subject: {name: name}}, headers: headers(user)
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # update
-      patch "/v1/subjects/#{subject.id}", params: nil, headers: headers(user)
+      name = 'grizzly bear'
+      patch "/v1/subjects/#{subject.id}", params: {subject: {name: name}}, headers: headers(user)
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # update
-      put "/v1/subjects/#{subject.id}", params: nil, headers: headers(user)
+      name = 'kodiak bear'
+      put "/v1/subjects/#{subject.id}", params: {subject: {name: name}}, headers: headers(user)
       expect(JSON.parse(response.body)["error"]).to eq(I18n.t('admin_authorizable_concern.not_permitted'))
 
       # destroy

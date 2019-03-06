@@ -69,7 +69,6 @@ RSpec.describe V1::AuthsController, type: :controller do
         expect(response).to have_http_status(:created)
         expect(response.content_type).to eq('application/json')
         expect(JSON.parse(response.body)["data"]["type"]).to eq("users")
-        expect(JSON.parse(response.body)["data"]["attributes"]["email"]).to eq(valid_params[:email])
         expect(JSON.parse(response.body)["data"]["attributes"]["display-name"]).to eq(valid_params[:display_name])
       end
     end
